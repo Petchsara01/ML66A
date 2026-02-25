@@ -9,6 +9,7 @@ import pickle
 import streamlit as st
 from streamlit_option_menu import option_menu
 
+# โหลดโมเดล (ตรวจสอบให้แน่ใจว่าไฟล์ .sav ทั้งหมดอยู่ในโฟลเดอร์เดียวกันกับโค้ด)
 riding_model = pickle.load(open("Riding_model.sav",'rb'))
 loan_model = pickle.load(open("loan_model.sav",'rb'))
 bmi_model = pickle.load(open("bmi_model.sav",'rb'))
@@ -53,7 +54,7 @@ with st.sidebar:
     }
 
 # ==========================================
-# หน้า Loan
+# 1. หน้า Loan
 # ==========================================
 if select == 'Loan':
     st.title('Loan Classification')
@@ -77,50 +78,65 @@ if select == 'Loan':
     loan_prediction = ''
     
     if st.button('Predict'):
-        loan_prediction = loan_model.predict([
-            [
-                float(person_age),
-                gender_map[person_gender],
-                education_map[person_education],
-                float(person_income),
-                float(person_emp_exp),
-                home_map[person_home_ownership],
-                float(loan_amnt),
-                intent_map[loan_intent],
-                float(loan_int_rate),
-                float(loan_percent_income),
-                float(cb_person_cred_hist_length),
-                float(credit_score),
-                default_map[previous_loan_defaults_on_file]
-            ]
-        ])
-        if loan_prediction[0] == 0:
-            loan_prediction = 'Non Accept'
-        else:
-            loan_prediction = 'Accept'
-            
-        st.success(loan_prediction)
+        try:
+            loan_prediction = loan_model.predict([
+                [
+                    float(person_age),
+                    gender_map[person_gender],
+                    education_map[person_education],
+                    float(person_income),
+                    float(person_emp_exp),
+                    home_map[person_home_ownership],
+                    float(loan_amnt),
+                    intent_map[loan_intent],
+                    float(loan_int_rate),
+                    float(loan_percent_income),
+                    float(cb_person_cred_hist_length),
+                    float(credit_score),
+                    default_map[previous_loan_defaults_on_file]
+                ]
+            ])
+            if loan_prediction[0] == 0:
+                loan_prediction_text = 'Non Accept'
+            else:
+                loan_prediction_text = 'Accept'
+                
+            st.success(loan_prediction_text)
+        except ValueError:
+            st.error("กรุณากรอกข้อมูลตัวเลขให้ครบถ้วนและถูกต้อง")
 
 # ==========================================
-# หน้า BMI
+# 2. หน้า BMI
 # ==========================================
 elif select == 'BMI':
     st.title('BMI Classification')
     
-    # หมายเหตุ: โค้ดเดิมของคุณคัดลอก Input ของ Loan มาใส่ใน BMI 
-    # คุณอาจจะต้องเปลี่ยนชื่อตัวแปรรับค่าให้ตรงกับโมเดล BMI ของคุณนะครับ
-    person_age = st.text_input('person_age')
-    person_gender = st.selectbox('person_gender', gender_map) 
+    # รับค่าจากผู้ใช้ตาม Features ของโมเดล: ['Gender', 'Height', 'Weight']
+    person_gender = st.selectbox('Gender', gender_map) 
+    person_height = st.text_input('Height (cm)')
+    person_weight = st.text_input('Weight (kg)')
     
-   
-   
+    bmi_prediction = ''
     
-    # อย่าลืมเพิ่มปุ่ม Predict สำหรับ BMI ด้วยนะครับ (โค้ดเดิมยังไม่มี)
-    # if st.button('Predict BMI'):
-    #     ... ใส่ logic การทำนาย BMI ตรงนี้ ...
+    if st.button('Predict'):
+        try:
+            # นำค่าไปทำนายผล (เรียงลำดับให้ตรงกับที่โมเดลเทรนมา: Gender, Height, Weight)
+            bmi_prediction = bmi_model.predict([
+                [
+                    gender_map[person_gender], 
+                    float(person_height), 
+                    float(person_weight)
+                ]
+            ])
+            
+            # แสดงผลลัพธ์
+            st.success(f'Predicted BMI Category: {bmi_prediction[0]}')
+            
+        except ValueError:
+            st.error("กรุณากรอกข้อมูลส่วนสูงและน้ำหนักเป็นตัวเลขให้ถูกต้อง")
 
 # ==========================================
-# หน้า Riding Mower
+# 3. หน้า Riding Mower
 # ==========================================
 elif select == 'Riding':
     st.title('Riding Mower Classification')
@@ -131,13 +147,15 @@ elif select == 'Riding':
     Riding_prediction = ''
     
     if st.button('Predict'):
-        Riding_prediction = riding_model.predict([
-            [float(Income), float(LotSize)]
-        ])
-        if Riding_prediction[0] == 0:
-            Riding_prediction = 'Non Owner'
-        else:
-            Riding_prediction = 'Owner'
-            
-        st.success(Riding_prediction)
-
+        try:
+            Riding_prediction = riding_model.predict([
+                [float(Income), float(LotSize)]
+            ])
+            if Riding_prediction[0] == 0:
+                Riding_prediction_text = 'Non Owner'
+            else:
+                Riding_prediction_text = 'Owner'
+                
+            st.success(Riding_prediction_text)
+        except ValueError:
+            st.error("กรุณากรอกข้อมูลรายได้และพื้นที่บ้านเป็นตัวเลขให้ถูกต้อง")
