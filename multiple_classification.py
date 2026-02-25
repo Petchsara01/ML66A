@@ -11,6 +11,7 @@ import streamlit as st
 from streamlit_option_menu import option_menu
 riding_model = pickle.load(open("Riding_model.sav",'rb'))
 loan_model = pickle.load(open("loan_model.sav",'rb'))
+bmi_model = pickle.load(open("bmi_model.sav",'rb'))
 
 
 with st.sidebar:
@@ -55,6 +56,25 @@ with st.sidebar:
 
 if(select == 'Loan'):
    st.title('loan Classification')
+   person_age = st.text_input('person_age')
+   person_gender = st.selectbox('person_gender', gender_map) 
+   person_education = st.selectbox('person_education', education_map)
+   person_income = st.text_input('person_income')
+   person_emp_exp = st.text_input('person_emp_exp')
+   person_home_ownership = st.selectbox('person_home_ownership', home_map)
+   loan_amnt = st.text_input('loan_amnt')
+   loan_intent = st.selectbox('loan_intent', intent_map)
+   loan_int_rate = st.text_input('loan_int_rate')
+   loan_percent_income = st.text_input('loan_percent_income')
+   cb_person_cred_hist_length = st.text_input('cb_person_cred_hist_length')
+   credit_score = st.text_input('credit_score')
+   previous_loan_defaults_on_file = st.selectbox(
+       'previous_loan_defaults_on_file',
+       default_map
+   )
+
+    if(select == 'BMI'):
+   st.title('BMI Classification')
    person_age = st.text_input('person_age')
    person_gender = st.selectbox('person_gender', gender_map) 
    person_education = st.selectbox('person_education', education_map)
@@ -119,3 +139,4 @@ if(select == 'Riding'):
           
     st.success(Riding_prediction)
         
+
