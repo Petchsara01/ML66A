@@ -9,7 +9,7 @@ import pickle
 import streamlit as st
 from streamlit_option_menu import option_menu
 
-# โหลดโมเดล (ตรวจสอบให้แน่ใจว่าไฟล์ .sav ทั้งหมดอยู่ในโฟลเดอร์เดียวกันกับโค้ด)
+# โหลดโมเดล
 riding_model = pickle.load(open("Riding_model.sav",'rb'))
 loan_model = pickle.load(open("loan_model.sav",'rb'))
 bmi_model = pickle.load(open("bmi_model.sav",'rb'))
@@ -111,16 +111,23 @@ if select == 'Loan':
 elif select == 'BMI':
     st.title('BMI Classification')
     
-    # รับค่าจากผู้ใช้ตาม Features ของโมเดล: ['Gender', 'Height', 'Weight']
+    # สร้าง Dictionary สำหรับแปลงค่าที่พยากรณ์ได้เป็นข้อความ
+    bmi_category_map = {
+        0: 'Extremly Weak',
+        1: 'Weak',
+        2: 'Normal',
+        3: 'Overweight',
+        4: 'Obesity',
+        5: 'Extreme Obesity'
+    }
+    
     person_gender = st.selectbox('Gender', gender_map) 
     person_height = st.text_input('Height (cm)')
     person_weight = st.text_input('Weight (kg)')
     
-    bmi_prediction = ''
-    
     if st.button('Predict'):
         try:
-            # นำค่าไปทำนายผล (เรียงลำดับให้ตรงกับที่โมเดลเทรนมา: Gender, Height, Weight)
+            # นำค่าไปทำนายผล 
             bmi_prediction = bmi_model.predict([
                 [
                     gender_map[person_gender], 
@@ -129,8 +136,14 @@ elif select == 'BMI':
                 ]
             ])
             
+            # ดึงผลลัพธ์ที่เป็นตัวเลข (0-5) ออกมา
+            predicted_class = int(bmi_prediction[0])
+            
+            # แปลงตัวเลขเป็นข้อความตาม Mapping ที่สร้างไว้
+            result_text = bmi_category_map.get(predicted_class, "Unknown Category")
+            
             # แสดงผลลัพธ์
-            st.success(f'Predicted BMI Category: {bmi_prediction[0]}')
+            st.success(f'Predicted BMI Category: {result_text}')
             
         except ValueError:
             st.error("กรุณากรอกข้อมูลส่วนสูงและน้ำหนักเป็นตัวเลขให้ถูกต้อง")
@@ -143,8 +156,6 @@ elif select == 'Riding':
     
     Income = st.text_input('รายได้')
     LotSize = st.text_input('พื้นที่บ้าน')
-    
-    Riding_prediction = ''
     
     if st.button('Predict'):
         try:
